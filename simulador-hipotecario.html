@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Hipotecario</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#FAF6F0;--white:#fff;--terra:#CB6E3A;--sand:#F8D6CB;
+  --brown:#6B5040;--taupe:#9B8B81;--text:#3A2A1E;--border:#EBE0D5;
+  --green:#27AE60;--red:#C0392B;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Jost',sans-serif;
+}
+body{background:var(--cream);color:var(--text);font-family:var(--sans);padding:28px 16px 60px;
+  background-image:radial-gradient(ellipse at 5% 10%,rgba(203,110,58,.07) 0%,transparent 50%),
+  radial-gradient(ellipse at 95% 90%,rgba(200,197,90,.07) 0%,transparent 50%)}
+.wrap{max-width:720px;margin:0 auto}
+
+/* Header */
+header{text-align:center;margin-bottom:32px}
+.star{color:var(--terra);font-size:15px;margin-bottom:5px;display:block}
+h1{font-family:var(--serif);font-size:clamp(24px,5vw,38px);font-weight:700;color:var(--terra);line-height:1.15;margin-bottom:5px}
+.sub{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--taupe)}
+.orn{display:flex;align-items:center;gap:10px;margin:10px auto;max-width:160px}
+.orn::before,.orn::after{content:'';flex:1;height:1px;background:var(--border)}
+.orn span{color:var(--terra);font-size:12px}
+
+/* Card */
+.card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:12px;box-shadow:0 2px 14px rgba(107,80,64,.06)}
+.ctitle{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--taupe);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ctitle::after{content:'';flex:1;height:1px;background:var(--border)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:440px){.g2{grid-template-columns:1fr}}
+
+/* Inputs */
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--taupe)}
+.iw{position:relative;display:flex;align-items:center}
+.pfx,.sfx{position:absolute;font-size:12px;font-weight:500;color:var(--taupe);pointer-events:none;z-index:1}
+.pfx{left:13px}.sfx{right:13px}
+input[type=number]{width:100%;background:var(--cream);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--sans);font-size:15px;font-weight:500;padding:11px 13px;outline:none;transition:border-color .2s,box-shadow .2s;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]:focus{border-color:var(--terra);box-shadow:0 0 0 3px rgba(203,110,58,.12);background:var(--white)}
+
+.pill-info{display:flex;align-items:center;justify-content:space-between;background:#FDF3EC;border:1px solid #F2CBAF;border-radius:10px;padding:9px 14px;margin-top:4px}
+.pill-info span:first-child{font-size:11px;color:var(--taupe);font-weight:500}
+.pill-info span:last-child{font-size:12px;font-weight:700;color:var(--terra)}
+
+/* Dual range sliders */
+.slider-group{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:440px){.slider-group{grid-template-columns:1fr}}
+.slider-box{display:flex;flex-direction:column;gap:6px}
+.slider-head{display:flex;justify-content:space-between;align-items:center}
+.slider-head label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--taupe)}
+.slider-badge{font-size:11px;font-weight:700;color:var(--terra);background:#FDF3EC;border:1px solid #F2CBAF;padding:2px 10px;border-radius:20px;white-space:nowrap}
+.dual-wrap{position:relative;height:36px;display:flex;align-items:center}
+.dual-wrap input[type=range]{position:absolute;width:100%;-webkit-appearance:none;appearance:none;height:5px;background:transparent;border:none;outline:none;pointer-events:none;margin:0}
+.dual-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--terra);border:3px solid var(--white);box-shadow:0 0 0 2px var(--terra),0 2px 6px rgba(203,110,58,.3);cursor:pointer;pointer-events:all;transition:transform .1s}
+.dual-wrap input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.1)}
+.dual-wrap input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--terra);border:3px solid var(--white);box-shadow:0 0 0 2px var(--terra);cursor:pointer;pointer-events:all}
+.range-track{position:absolute;left:0;right:0;height:5px;border-radius:3px;background:var(--border)}
+.range-fill{position:absolute;height:5px;background:var(--terra);border-radius:3px}
+.range-vals{display:flex;justify-content:space-between;font-size:10px;color:var(--taupe);font-weight:600;margin-top:2px}
+
+/* Matrix */
+.mx-hint{font-size:11px;color:var(--taupe);margin-bottom:12px;line-height:1.5}
+.mx-hint strong{color:var(--terra)}
+.mx-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.mx-scroll::-webkit-scrollbar{height:3px}
+.mx-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.mx-table{border-collapse:separate;border-spacing:4px;min-width:300px}
+.mx-table th{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--taupe);padding:5px 6px;text-align:center;white-space:nowrap}
+.mx-table .corner{text-align:left;font-size:8px;color:var(--taupe)}
+.mx-table .row-h{font-size:11px;font-weight:700;color:var(--brown);padding:3px 8px 3px 0;text-align:right;white-space:nowrap;vertical-align:middle}
+.mx-cell{border-radius:10px;padding:7px 5px;cursor:pointer;text-align:center;transition:transform .12s,box-shadow .12s;border:2px solid transparent;user-select:none;min-width:58px}
+.mx-cell:hover{transform:scale(1.07);box-shadow:0 3px 10px rgba(107,80,64,.2)}
+.mx-cell.sel{border-color:var(--terra)!important;box-shadow:0 0 0 3px rgba(203,110,58,.25)}
+.mx-cell .val{font-size:11px;font-weight:700;line-height:1}
+.mx-cell .sub{font-size:9px;opacity:.6;margin-top:2px}
+.legend{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:4px}
+.leg-dot{width:9px;height:9px;border-radius:3px}
+.leg span{font-size:9px;color:var(--taupe);font-weight:600}
+.sel-info{margin-top:10px;background:#FDF3EC;border:1px solid #F2CBAF;border-radius:10px;padding:8px 13px;font-size:12px;color:var(--brown);font-weight:500}
+.sel-info strong{color:var(--terra)}
+
+/* Result card — flow layout */
+.result-card{background:var(--terra);border-radius:20px;padding:24px;margin-bottom:12px;box-shadow:0 8px 28px rgba(203,110,58,.22);position:relative;overflow:hidden}
+.result-card::before{content:'✦';position:absolute;top:-8px;right:16px;font-size:64px;color:rgba(255,255,255,.06);pointer-events:none}
+
+/* Flow row: propiedad → pie → banco */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:6px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.2)}
+@media(max-width:480px){.flow{grid-template-columns:1fr;gap:8px}.flow-arrow{display:none}}
+.flow-item{background:rgba(255,255,255,.12);border-radius:14px;padding:11px 12px;text-align:center}
+.flow-label{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:4px}
+.flow-uf{font-size:13px;font-weight:700;color:#fff}
+.flow-pesos{font-size:10px;color:rgba(255,255,255,.55);margin-top:2px}
+.flow-pct{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);margin-top:2px}
+.flow-arrow{font-size:16px;color:rgba(255,255,255,.35);text-align:center}
+
+/* Interest breakdown bar */
+.int-bar-wrap{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.2)}
+.int-bar-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:8px}
+.int-bar{height:10px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden;margin-bottom:6px}
+.int-bar-fill{height:100%;background:rgba(255,255,255,.45);border-radius:5px;transition:width .4s}
+.int-bar-legend{display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.65)}
+.int-bar-legend span strong{color:#fff;font-weight:700}
+
+/* Dividendo */
+.rtitle{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:6px}
+.ramount{font-family:var(--serif);font-size:clamp(28px,6vw,44px);font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1;margin-bottom:4px}
+.ruf{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:18px}
+
+/* Salary rows */
+.sal-sec{border-top:1px solid rgba(255,255,255,.2);padding-top:14px}
+.sal-title{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:8px}
+.sal-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.1);border-radius:11px;padding:10px 13px;margin-bottom:7px}
+.sal-row:last-child{margin-bottom:0}
+.sal-tag{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:2px}
+.sal-amt{font-size:15px;font-weight:700;color:#fff}
+.badge{font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);white-space:nowrap}
+
+/* Breakdown */
+.bkdn{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:18px 22px;margin-bottom:12px;box-shadow:0 2px 14px rgba(107,80,64,.06)}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.brow:last-child{border:none}
+.brow span:first-child{color:var(--taupe)}
+.brow span:last-child{font-weight:600}
+.brow.tot{border-top:2px solid var(--terra);border-bottom:none;margin-top:2px;padding-top:11px}
+.brow.tot span:first-child{font-weight:600;color:var(--text)}
+.brow.tot span:last-child{color:var(--terra);font-size:15px}
+
+/* Amort */
+.btn-amort{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:transparent;border:1.5px solid var(--terra);border-radius:14px;color:var(--terra);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:background .2s}
+.btn-amort:hover{background:#FDF3EC}
+.btn-amort .arr{transition:transform .3s}
+.btn-amort.open .arr{transform:rotate(180deg)}
+.amort-panel{display:none;background:var(--white);border:1px solid var(--border);border-radius:20px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 14px rgba(107,80,64,.06)}
+.amort-panel.show{display:block}
+
+/* Abono section */
+.abono-sec{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--cream)}
+.abono-sec .ctitle{margin-bottom:12px}
+.abono-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+@media(max-width:440px){.abono-grid{grid-template-columns:1fr}}
+.abono-save{background:#FDF3EC;border:1px solid #F2CBAF;border-radius:10px;padding:10px 13px;font-size:11px;color:var(--brown);line-height:1.5}
+.abono-save strong{color:var(--terra)}
+.abono-save .saved{color:var(--green);font-weight:700}
+
+/* Amort summary */
+.amort-sum{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border)}
+.asum-it{padding:12px 8px;text-align:center;border-right:1px solid var(--border)}
+.asum-it:last-child{border:none}
+.asum-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--taupe);margin-bottom:3px}
+.asum-v{font-size:12px;font-weight:700}
+
+/* Year filter */
+.yr-filter{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:var(--cream)}
+.yr-filter label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--taupe);margin-right:2px}
+.yr-btn{background:var(--white);border:1px solid var(--border);border-radius:7px;color:var(--taupe);font-family:var(--sans);font-size:10px;font-weight:600;padding:3px 9px;cursor:pointer;transition:all .12s}
+.yr-btn:hover{border-color:var(--terra);color:var(--terra)}
+.yr-btn.act{background:var(--terra);border-color:var(--terra);color:#fff}
+
+/* Amort table */
+.atw{overflow-x:auto;max-height:380px;overflow-y:auto}
+.atw::-webkit-scrollbar{width:4px;height:4px}
+.atw::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--cream);padding:9px 10px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--taupe);position:sticky;top:0;z-index:2}
+thead th:first-child{text-align:left}
+tbody tr{border-bottom:1px solid rgba(235,224,213,.7)}
+tbody tr:hover{background:#FDF8F4}
+tbody tr.yr-s td{border-top:2px solid rgba(203,110,58,.2)}
+tbody tr.has-ab{background:#FEFCF8}
+td{padding:8px 10px;text-align:right;font-size:11px;font-weight:500;white-space:nowrap}
+td:first-child{text-align:left;font-size:10px;color:var(--taupe)}
+td.ti{color:var(--red)}td.tc{color:var(--green)}td.td{color:var(--brown);font-weight:700}td.ts{color:var(--terra)}
+.pb{display:flex;align-items:center;gap:4px;justify-content:flex-end}
+.pb-bar{width:36px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.pb-fill{height:100%;border-radius:2px}
+.ab-tag{font-size:8px;background:#FDF3EC;color:var(--terra);border:1px solid #F2CBAF;border-radius:4px;padding:1px 4px;font-weight:700;margin-left:4px}
+
+.sal-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:12px;box-shadow:0 2px 14px rgba(107,80,64,.06)}
+.sal-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:440px){.sal-inputs{grid-template-columns:1fr}}
+.sal-total{display:flex;align-items:center;justify-content:space-between;background:#FDF3EC;border:1px solid #F2CBAF;border-radius:12px;padding:10px 16px;margin-bottom:12px}
+.sal-total-label{font-size:11px;font-weight:600;color:var(--taupe)}
+.sal-total-val{font-size:16px;font-weight:700;color:var(--terra)}
+.sal-status{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sal-stat{border-radius:12px;padding:10px 13px;text-align:center}
+.sal-stat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.sal-stat-val{font-size:13px;font-weight:700}
+.stat-ok{background:#F0FBF5;border:1px solid #A8E6C1}
+.stat-ok .sal-stat-label{color:#27AE60}
+.stat-ok .sal-stat-val{color:#1E8449}
+.stat-warn{background:#FFF9F0;border:1px solid #F5CBA7}
+.stat-warn .sal-stat-label{color:#E67E22}
+.stat-warn .sal-stat-val{color:#CA6F1E}
+.stat-bad{background:#FEF0F0;border:1px solid #F5B7B1}
+.stat-bad .sal-stat-label{color:var(--red)}
+.stat-bad .sal-stat-val{color:#A93226}
+.cae-box{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:10px}
+.cae-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.cae-row:last-child{border:none}
+.cae-row span:first-child{color:var(--taupe)}
+.cae-row span:last-child{font-weight:600}
+.cae-row.total{padding-top:10px;margin-top:2px;border-top:2px solid var(--terra);border-bottom:none}
+.cae-row.total span:first-child{font-weight:700;color:var(--text)}
+.cae-row.total span:last-child{color:var(--terra);font-size:15px}
+.rate-bank{border-radius:10px;padding:7px 8px;text-align:center;background:var(--white);border:1px solid var(--border)}
+.rate-bank-name{font-size:9px;font-weight:700;color:var(--taupe);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.rate-bank-rate{font-size:13px;font-weight:700}
+.rate-good{color:var(--green)}
+.rate-ok{color:var(--terra)}
+.rate-high{color:var(--red)}
+.fnote{text-align:center;font-size:11px;color:var(--taupe);margin-top:6px}
+.fnote strong{color:var(--terra)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="star">✦</span>
+  <h1>Simulador<br>Hipotecario</h1>
+  <div class="orn"><span>✦</span></div>
+  <p class="sub">Chile · Crédito en UF</p>
+</header>
+
+<!-- Propiedad -->
+<div class="card">
+  <div class="ctitle">Datos de la propiedad</div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="field">
+      <label>Valor propiedad (UF)</label>
+      <div class="iw"><input type="number" id="propUF" value="" min="500" max="200000" step="100"></div>
+    </div>
+    <div class="field">
+      <label>Valor UF hoy ($)</label>
+      <div class="iw"><input type="number" id="ufValue" value="40442" min="30000" max="60000"></div>
+    </div>
+  </div>
+  <div class="field" style="margin-bottom:10px">
+    <label>Pie (millones de $)</label>
+    <div class="iw"><input type="number" id="pieM" value="" min="0" max="5000" step="1"></div>
+  </div>
+  <div class="pill-info">
+    <span>Pie en UF · % del valor</span>
+    <span id="pieUF">—</span>
+  </div>
+
+  <!-- Seguros -->
+  <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--taupe);margin-bottom:10px">Seguros obligatorios — para calcular CAE</div>
+    <div class="g2" style="margin-bottom:10px">
+      <div class="field">
+        <label>Desgravamen (% saldo/mes)</label>
+        <div class="iw" style="position:relative">
+          <input type="number" id="segDesg" value="0.03" min="0" max="0.2" step="0.005" oninput="redraw()">
+          <span style="position:absolute;right:13px;font-size:12px;color:var(--taupe);pointer-events:none">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Incendio+sismo (% prop/mes)</label>
+        <div class="iw" style="position:relative">
+          <input type="number" id="segIncendio" value="0.012" min="0" max="0.1" step="0.001" oninput="redraw()">
+          <span style="position:absolute;right:13px;font-size:12px;color:var(--taupe);pointer-events:none">%</span>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:10px;color:var(--taupe);line-height:1.5">Valores típicos Mayo 2026. El <strong>desgravamen</strong> (~0,03%/mes) se aplica sobre el saldo; <strong>incendio+sismo</strong> (~0,012%/mes) sobre el valor de la propiedad. Ambos bajan con el tiempo.</p>
+  </div>
+
+  <!-- Gastos operacionales -->
+  <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--taupe);margin-bottom:10px">Gastos operacionales — se pagan al firmar</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--brown);cursor:pointer">
+        <input type="checkbox" id="esDFL2" onchange="redraw()" style="accent-color:var(--terra);width:16px;height:16px"> Califica como DFL2
+      </label>
+      <span style="font-size:10px;color:var(--taupe)">(propiedad ≤ 140 m² → timbres 0,6% y sin contribuciones)</span>
+    </div>
+    <div id="gastosOpBox" style="background:var(--cream);border-radius:12px;padding:12px 14px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--taupe)">Timbres y estampillas</span><span id="goTimbres" style="font-weight:600">—</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--taupe)">Tasación + títulos + notaría</span><span id="goFijos" style="font-weight:600">—</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0 4px"><span style="font-weight:700;color:var(--text)">Total gastos operacionales</span><span id="goTotal" style="font-weight:700;color:var(--terra);font-size:13px">—</span></div>
+      <div style="height:1px;background:var(--border);margin:6px 0"></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--taupe)">Pie disponible</span><span id="goPieDisp" style="font-weight:600">—</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--taupe)">− Gastos operacionales</span><span id="goDeduccion" style="font-weight:600;color:var(--red)">—</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0 2px"><span style="font-weight:700;color:var(--text)">Pie efectivo para la propiedad</span><span id="goPieEfectivo" style="font-weight:700;color:var(--green);font-size:13px">—</span></div>
+    </div>
+  </div>
+
+  <!-- Contribuciones -->
+  <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--taupe);margin-bottom:10px">Contribuciones (impuesto territorial)</div>
+    <div id="contribucionBox">
+      <div id="contDFL2msg" style="font-size:11px;color:var(--green);font-weight:600;display:none">✓ DFL2: exento de contribuciones</div>
+      <div id="contInputs">
+        <div class="field" style="margin-bottom:8px">
+          <label>Tasa contribución anual (% avalúo fiscal)</label>
+          <div class="iw" style="position:relative">
+            <input type="number" id="contTasa" value="0.3" min="0" max="2" step="0.05" oninput="redraw()">
+            <span style="position:absolute;right:13px;font-size:12px;color:var(--taupe);pointer-events:none">%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Avalúo fiscal (% del valor de compra)</label>
+          <div class="iw" style="position:relative">
+            <input type="number" id="contAvaluo" value="70" min="10" max="100" step="5" oninput="redraw()">
+            <span style="position:absolute;right:13px;font-size:12px;color:var(--taupe);pointer-events:none">%</span>
+          </div>
+        </div>
+        <div class="pill-info" style="margin-top:8px">
+          <span>Contribución mensual estimada</span>
+          <span id="contMensual" style="font-weight:700;color:var(--terra)">—</span>
+        </div>
+        <p style="font-size:10px;color:var(--taupe);margin-top:6px;line-height:1.5">El avalúo fiscal suele ser 60-80% del valor de mercado. La tasa varía por comuna (0,1%–0,5% anual). Se paga en 4 cuotas al año.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sueldos -->
+<div class="sal-card">
+  <div class="ctitle">Sueldos</div>
+  <div class="sal-inputs">
+    <div class="field">
+      <label>Sueldo líquido 1</label>
+      <div class="iw"><input type="number" id="sueldo1" value="" min="0" step="100000" oninput="updateSalary()"></div>
+    </div>
+    <div class="field">
+      <label>Sueldo líquido 2</label>
+      <div class="iw"><input type="number" id="sueldo2" value="" min="0" step="100000" oninput="updateSalary()"></div>
+    </div>
+  </div>
+  <div class="sal-total">
+    <span class="sal-total-label">Renta conjunta</span>
+    <span class="sal-total-val" id="sueldoTotal">$8.500.000</span>
+  </div>
+  <div class="sal-status" id="salStatus">
+    <div class="sal-stat"><div class="sal-stat-label">Banco (25%)</div><div class="sal-stat-val" id="stat25">—</div></div>
+    <div class="sal-stat"><div class="sal-stat-label">Banco (30%)</div><div class="sal-stat-val" id="stat30">—</div></div>
+    <div class="sal-stat"><div class="sal-stat-label">% dividendo</div><div class="sal-stat-val" id="statPct">—</div></div>
+    <div class="sal-stat"><div class="sal-stat-label">Te queda</div><div class="sal-stat-val" id="statSobra">—</div></div>
+  </div>
+</div>
+
+<!-- Matriz con sliders -->
+<div class="card">
+  <div class="ctitle">Tasa × Plazo</div>
+
+  <div class="slider-group">
+    <!-- Tasa slider dual -->
+    <div class="slider-box">
+      <div class="slider-head">
+        <label>Rango de tasas</label>
+        <span class="slider-badge" id="tasaBadge">3,0% – 6,0%</span>
+      </div>
+      <div class="dual-wrap" id="tasaWrap">
+        <div class="range-track"></div>
+        <div class="range-fill" id="tasaFill"></div>
+        <input type="range" id="tasaMinS" min="1" max="10" step="0.1" value="3">
+        <input type="range" id="tasaMaxS" min="1" max="10" step="0.1" value="5.5">
+      </div>
+      <div class="range-vals"><span id="tasaMinLbl">3,0%</span><span id="tasaMaxLbl">6,0%</span></div>
+    </div>
+
+    <!-- Años slider dual -->
+    <div class="slider-box">
+      <div class="slider-head">
+        <label>Rango de años</label>
+        <span class="slider-badge" id="anosBadge">10 – 30 a</span>
+      </div>
+      <div class="dual-wrap" id="anosWrap">
+        <div class="range-track"></div>
+        <div class="range-fill" id="anosFill"></div>
+        <input type="range" id="anosMinS" min="5" max="40" step="5" value="10">
+        <input type="range" id="anosMaxS" min="5" max="40" step="5" value="30">
+      </div>
+      <div class="range-vals"><span id="anosMinLbl">10 a</span><span id="anosMaxLbl">30 a</span></div>
+    </div>
+  </div>
+
+  <p class="mx-hint">Cada celda = dividendo mensual. <strong>Toca una celda</strong> para seleccionarla.</p>
+  <div class="mx-scroll"><table class="mx-table" id="mxTable"></table></div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--sand);border:1px solid var(--border)"></div><span>Bajo</span></div>
+    <div class="leg"><div class="leg-dot" style="background:var(--terra)"></div><span>Seleccionado</span></div>
+    <div class="leg"><div class="leg-dot" style="background:var(--brown)"></div><span>Alto</span></div>
+  </div>
+  <div class="sel-info" id="selInfo">Selecciona una celda ↓</div>
+
+  <!-- Rate recommendation -->
+  <div id="rateBox" style="margin-top:10px;border-radius:14px;padding:14px 16px;background:var(--cream);border:1px solid var(--border)">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--taupe);margin-bottom:10px">¿Qué tasa puedes conseguir? · Mayo 2026</div>
+    <div id="rateRec" style="font-size:13px;color:var(--text);line-height:1.6"></div>
+    <div style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px" id="rateBanks"></div>
+    <div style="margin-top:8px;font-size:10px;color:var(--taupe)">Tasas referenciales Mayo 2026 · Siempre cotiza en al menos 3 bancos</div>
+  </div>
+</div>
+
+<!-- Resultado -->
+<div class="result-card">
+
+  <!-- Flow: propiedad → pie → banco -->
+  <div class="ctitle" style="color:rgba(255,255,255,.5);margin-bottom:14px">Así funciona tu crédito</div>
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-label">Propiedad</div>
+      <div class="flow-uf" id="fPropUF">—</div>
+      <div class="flow-pesos" id="fPropP">—</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="flow-label">Tu pie</div>
+      <div class="flow-uf" id="fPieUF">—</div>
+      <div class="flow-pesos" id="fPieP">—</div>
+      <div class="flow-pct" id="fPiePct">—</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="flow-label">Le pedís al banco</div>
+      <div class="flow-uf" id="fBancoUF">—</div>
+      <div class="flow-pesos" id="fBancoP">—</div>
+    </div>
+  </div>
+
+  <!-- Interest bar -->
+  <div class="int-bar-wrap">
+    <div class="int-bar-label">De lo que pagas al banco, así se divide:</div>
+    <div class="int-bar"><div class="int-bar-fill" id="intBarFill"></div></div>
+    <div class="int-bar-legend">
+      <span>Capital devuelto: <strong id="fCapital">—</strong></span>
+      <span>Intereses: <strong id="fIntereses">—</strong></span>
+    </div>
+  </div>
+
+  <!-- Dividendo -->
+  <div class="rtitle">Dividendo mensual estimado</div>
+  <div class="ramount" id="dividendo">—</div>
+  <div class="ruf" id="divUF">— UF/mes</div>
+
+  <!-- CAE breakdown -->
+  <div style="margin-bottom:18px;border-radius:14px;padding:14px 16px;background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.15)">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:8px">Costo real mensual — incluye seguros</div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.15);font-size:12px"><span style="color:rgba(255,255,255,.65)">Dividendo base</span><span style="font-weight:600;color:#fff" id="caeDiv">—</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.15);font-size:12px"><span style="color:rgba(255,255,255,.65)">Seguro desgravamen</span><span style="font-weight:600;color:rgba(255,255,255,.8)" id="caeDesg">—</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.15);font-size:12px"><span style="color:rgba(255,255,255,.65)">Seguro incendio + sismo</span><span style="font-weight:600;color:rgba(255,255,255,.8)" id="caeInc">—</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.15);font-size:12px"><span style="color:rgba(255,255,255,.65)">Contribuciones</span><span style="font-weight:600;color:rgba(255,255,255,.8)" id="caeCont">—</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:14px"><span style="font-weight:700;color:#fff">Total mensual real</span><span style="font-weight:700;color:#fff;font-size:16px" id="caeTotal">—</span></div>
+    <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.12);border-radius:10px;padding:8px 12px">
+      <span style="font-size:11px;color:rgba(255,255,255,.65);font-weight:500">CAE aproximado</span>
+      <span style="font-size:15px;font-weight:700;color:#fff" id="caeVal">—</span>
+    </div>
+  </div>
+
+  <div class="sal-sec">
+    <div class="sal-title">Sueldo líquido mínimo requerido (conjunto)</div>
+    <div class="sal-row">
+      <div><div class="sal-tag">Banco exigente · 25% de la renta</div><div class="sal-amt" id="s25">—</div></div>
+      <div class="badge">Estricto</div>
+    </div>
+    <div class="sal-row">
+      <div><div class="sal-tag">Banco normal · 30% de la renta</div><div class="sal-amt" id="s30">—</div></div>
+      <div class="badge">Habitual</div>
+    </div>
+  </div>
+</div>
+
+<!-- Breakdown -->
+<div class="bkdn">
+  <div class="ctitle">Desglose</div>
+  <div class="brow"><span>Valor propiedad</span><span id="bProp">—</span></div>
+  <div class="brow"><span>Pie aportado</span><span id="bPie">—</span></div>
+  <div class="brow"><span>Crédito al banco</span><span id="bCred">—</span></div>
+  <div class="brow"><span>Interés total a pagar</span><span id="bInt">—</span></div>
+  <div class="brow"><span>Tasa · Plazo</span><span id="bTP">—</span></div>
+  <div class="brow tot"><span>Dividendo mensual</span><span id="bDiv">—</span></div>
+</div>
+
+<!-- Amort -->
+<button class="btn-amort" id="btnAmort" onclick="toggleAmort()">
+  <span>Ver tabla mes a mes</span><span class="arr">⌄</span>
+</button>
+<div class="amort-panel" id="amortPanel">
+
+  <!-- Abonos por frecuencia -->
+  <div class="abono-sec">
+    <div class="ctitle">Abonos extra</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px">
+      <div class="field">
+        <label>Cada cuántos meses</label>
+        <div class="iw"><input type="number" id="newAbonoN" value="" min="1" max="480" placeholder="ej: 12 = anual"></div>
+      </div>
+      <div class="field">
+        <label>Monto ($)</label>
+        <div class="iw"><input type="number" id="newAbonoMonto" value="" min="0" step="100000" placeholder="ej: 5.000.000"></div>
+      </div>
+      <button onclick="addAbono()" style="background:var(--terra);color:#fff;border:none;border-radius:11px;padding:11px 16px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;height:44px" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">+ Agregar</button>
+    </div>
+    <p style="font-size:10px;color:var(--taupe);margin-bottom:10px">💡 <strong>12</strong> = anual · <strong>6</strong> = semestral · <strong>3</strong> = trimestral · <strong>1</strong> = todos los meses</p>
+
+    <div id="abonoList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+    <div class="abono-save" id="abonoSave">Agrega abonos para ver cuánto ahorras</div>
+  </div>
+
+  <div class="amort-sum">
+    <div class="asum-it"><div class="asum-l">Total pagado</div><div class="asum-v" id="sTot" style="color:var(--brown)">—</div></div>
+    <div class="asum-it"><div class="asum-l">Intereses</div><div class="asum-v" id="sInt" style="color:var(--red)">—</div></div>
+    <div class="asum-it"><div class="asum-l">Capital</div><div class="asum-v" id="sCap" style="color:var(--green)">—</div></div>
+  </div>
+  <div class="yr-filter" id="yrFilter"><label>Año:</label></div>
+  <div class="atw">
+    <table>
+      <thead><tr><th>Mes</th><th>Dividendo</th><th>Seguros</th><th>Total real</th><th>Interés</th><th>Capital</th><th>% Int.</th><th>Saldo UF</th></tr></thead>
+      <tbody id="amortBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<p class="fnote">UF hoy: <strong id="ufDisplay">$40.442</strong> · Valores referenciales</p>
+</div>
+
+<script>
+// ─── Formatters ───────────────────────────────────────────────
+const fmt   = n => '$' + Math.round(n).toLocaleString('es-CL');
+const fmtUF = n => n.toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' UF';
+const fmtM  = n => (n/1e6).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2}) + 'M';
+
+// ─── State ────────────────────────────────────────────────────
+let selTasa = 4.5, selAnos = 20;
+
+// ─── Rate recommendation ─────────────────────────────────────
+const MARKET_RATES = [
+  { bank:'Itaú',       rate:3.39, cls:'rate-good' },
+  { bank:'Falabella',  rate:3.70, cls:'rate-good' },
+  { bank:'BancoEstado',rate:4.19, cls:'rate-ok'   },
+  { bank:'Santander',  rate:4.35, cls:'rate-ok'   },
+  { bank:'Scotiabank', rate:4.64, cls:'rate-ok'   },
+  { bank:'Promedio',   rate:4.80, cls:'rate-high'  },
+];
+
+function updateRateRecommendation(piePct, credUF, anos){
+  const rec  = document.getElementById('rateRec');
+  const bnks = document.getElementById('rateBanks');
+
+  // Determine target range based on pie %
+  let lo, hi, perfil;
+  if(piePct >= 30){
+    lo=3.3; hi=3.7;
+    perfil='Con un pie del <strong>'+piePct.toFixed(0)+'%</strong> tienes un perfil de <strong style="color:var(--green)">bajo riesgo</strong> para el banco.';
+  } else if(piePct >= 25){
+    lo=3.5; hi=4.0;
+    perfil='Con un pie del <strong>'+piePct.toFixed(0)+'%</strong> tienes un perfil <strong style="color:var(--terra)">bueno</strong> para el banco.';
+  } else if(piePct >= 20){
+    lo=3.8; hi=4.4;
+    perfil='Con un pie del <strong>'+piePct.toFixed(0)+'%</strong> tienes un perfil <strong style="color:var(--terra)">estándar</strong>.';
+  } else {
+    lo=4.2; hi=5.0;
+    perfil='Con un pie del <strong>'+piePct.toFixed(0)+'%</strong> el banco te verá como mayor riesgo.';
+  }
+
+  // Plazo note
+  const plazoNote = anos <= 15
+    ? 'El plazo corto ('+anos+' años) mejora la tasa que puedes negociar.'
+    : anos >= 30
+    ? 'A '+anos+' años el banco asume más riesgo, la tasa puede subir un poco.'
+    : '';
+
+  rec.innerHTML = perfil
+    + ' Deberías poder conseguir una tasa entre <strong style="color:var(--green)">'
+    + lo.toFixed(1).replace('.',',')+' %</strong> y <strong style="color:var(--terra)">'
+    + hi.toFixed(1).replace('.',',')+' %</strong>.'
+    + (plazoNote ? '<br><span style="font-size:11px;color:var(--taupe)">'+plazoNote+'</span>' : '');
+
+  // Bank pills
+  bnks.innerHTML = MARKET_RATES.map(b=>`
+    <div class="rate-bank">
+      <div class="rate-bank-name">${b.bank}</div>
+      <div class="rate-bank-rate ${b.rate<=hi && b.rate>=lo-0.2 ? 'rate-good' : b.rate<=hi+0.5 ? 'rate-ok' : 'rate-high'}">${b.rate.toFixed(2).replace('.',',')}%</div>
+    </div>`).join('');
+}
+
+// ─── Salary tracker ───────────────────────────────────────────
+function updateSalary(){
+  const s1 = parseFloat(document.getElementById('sueldo1').value)||0;
+  const s2 = parseFloat(document.getElementById('sueldo2').value)||0;
+  const total = s1+s2;
+  document.getElementById('sueldoTotal').textContent = fmt(total);
+
+  // Get current dividendo from result
+  const divEl = document.getElementById('dividendo').textContent;
+  const div = parseFloat(divEl.replace(/[^0-9]/g,''))||0;
+  updateSalaryStatus(total, div);
+}
+
+function updateSalaryStatus(total, div){
+  if(!total||!div){ return; }
+  const pct = div/total*100;
+  const sobra = total-div;
+
+  const stat25 = document.getElementById('stat25');
+  const stat30 = document.getElementById('stat30');
+  const statPct = document.getElementById('statPct');
+  const statSobra = document.getElementById('statSobra');
+
+  // 25% check
+  const ok25 = div <= total*0.25;
+  stat25.parentElement.className = 'sal-stat '+(ok25?'stat-ok':'stat-bad');
+  stat25.textContent = ok25 ? '✓ Aprobado' : '✗ '+fmt(div/0.25)+' mín';
+
+  // 30% check
+  const ok30 = div <= total*0.30;
+  stat30.parentElement.className = 'sal-stat '+(ok30?'stat-ok':(div<=total*0.35?'stat-warn':'stat-bad'));
+  stat30.textContent = ok30 ? '✓ Aprobado' : '✗ '+fmt(div/0.30)+' mín';
+
+  // % of salary
+  statPct.parentElement.className = 'sal-stat '+(pct<=25?'stat-ok':pct<=30?'stat-warn':'stat-bad');
+  statPct.textContent = pct.toFixed(1)+'%';
+
+  // What's left
+  statSobra.parentElement.className = 'sal-stat '+(sobra>=1000000?'stat-ok':sobra>=500000?'stat-warn':'stat-bad');
+  statSobra.textContent = fmt(sobra);
+}
+let amortData = [], activeYear = 0;
+
+// ─── Helpers ──────────────────────────────────────────────────
+function cuota(cred, tasa, anos) {
+  const r = tasa/100/12, n = anos*12;
+  if(!r||!cred||!n) return 0;
+  return cred * r / (1-Math.pow(1+r,-n));
+}
+function linspace(min,max,steps){
+  if(steps<2) return [min];
+  return Array.from({length:steps},(_,i)=>+(min+(max-min)*i/(steps-1)).toFixed(2));
+}
+function heatColor(ratio){
+  let r,g,b;
+  if(ratio<0.5){const t=ratio*2;r=Math.round(248+(203-248)*t);g=Math.round(214+(110-214)*t);b=Math.round(203+(58-203)*t);}
+  else{const t=(ratio-0.5)*2;r=Math.round(203+(107-203)*t);g=Math.round(110+(80-110)*t);b=Math.round(58+(64-58)*t);}
+  return `rgb(${r},${g},${b})`;
+}
+
+// ─── Dual range slider setup ──────────────────────────────────
+function setupDual(minId, maxId, fillId, minLbl, maxLbl, badgeId, suffix, decimals, onchange){
+  const sMin = document.getElementById(minId);
+  const sMax = document.getElementById(maxId);
+  const fill = document.getElementById(fillId);
+  const lMin = document.getElementById(minLbl);
+  const lMax = document.getElementById(maxLbl);
+  const badge = document.getElementById(badgeId);
+  const MIN = parseFloat(sMin.min), MAX = parseFloat(sMin.max);
+
+  function update(){
+    let vMin = parseFloat(sMin.value), vMax = parseFloat(sMax.value);
+    if(vMin > vMax){ const t=vMin;vMin=vMax;vMax=t; }
+    const pMin = (vMin-MIN)/(MAX-MIN)*100;
+    const pMax = (vMax-MIN)/(MAX-MIN)*100;
+    fill.style.left = pMin+'%';
+    fill.style.width = (pMax-pMin)+'%';
+    const fmt = v => decimals>0 ? v.toFixed(decimals).replace('.',',') : Math.round(v);
+    lMin.textContent = fmt(vMin)+suffix;
+    lMax.textContent = fmt(vMax)+suffix;
+    badge.textContent = fmt(vMin)+suffix+' – '+fmt(vMax)+suffix;
+    onchange(vMin,vMax);
+  }
+  sMin.addEventListener('input', update);
+  sMax.addEventListener('input', update);
+  update();
+}
+
+// ─── Build matrix ─────────────────────────────────────────────
+function buildMatrix(tMin,tMax,aMin,aMax){
+  const propUF = parseFloat(document.getElementById('propUF').value)||0;
+  const ufVal  = parseFloat(document.getElementById('ufValue').value)||40442;
+  const pieM   = parseFloat(document.getElementById('pieM').value)||0;
+  const pieUF  = (pieM*1e6)/ufVal;
+  const credUF = Math.max(0, propUF-pieUF);
+
+  const tSteps = 6; // siempre 6 filas — rango chico = pasos más finos
+  const aSteps = 6; // siempre 6 columnas
+  const TASAS  = linspace(tMin, tMax, tSteps);
+  const PLAZOS = linspace(aMin, aMax, aSteps).map(v => Math.round(v/5)*5).filter((v,i,a)=>a.indexOf(v)===i);
+
+  selTasa = TASAS.reduce((a,b)=>Math.abs(b-selTasa)<Math.abs(a-selTasa)?b:a);
+  selAnos = PLAZOS.reduce((a,b)=>Math.abs(b-selAnos)<Math.abs(a-selAnos)?b:a);
+
+  const vals = TASAS.flatMap(t=>PLAZOS.map(p=>cuota(credUF,t,p)*ufVal));
+  const minV=Math.min(...vals), maxV=Math.max(...vals), range=maxV-minV||1;
+
+  const tbl=document.getElementById('mxTable'); tbl.innerHTML='';
+  const thead=tbl.createTHead(), hr=thead.insertRow();
+  const th0=document.createElement('th'); th0.className='corner';
+  th0.innerHTML='Tasa↓/Años→'; hr.appendChild(th0);
+  PLAZOS.forEach(p=>{const th=document.createElement('th');th.textContent=p+' a';hr.appendChild(th);});
+
+  const tbody=tbl.createTBody();
+  TASAS.forEach(t=>{
+    const tr=tbody.insertRow();
+    const tdH=tr.insertCell(); tdH.className='row-h';
+    tdH.textContent=t.toFixed(1).replace('.',',')+' %';
+    PLAZOS.forEach(p=>{
+      const divP=cuota(credUF,t,p)*ufVal;
+      const ratio=(divP-minV)/range;
+      const isSel=(t===selTasa&&p===selAnos);
+      const td=tr.insertCell();
+      td.className='mx-cell'+(isSel?' sel':'');
+      td.style.background=isSel?'var(--terra)':heatColor(ratio);
+      td.style.color=isSel?'#fff':(ratio>0.55?'#fff':'var(--brown)');
+      const miles=Math.round(divP/1000);
+      td.innerHTML='<div class="val">$'+miles.toLocaleString('es-CL')+'K</div>'
+                  +'<div class="sub">'+fmtM(divP)+'</div>';
+      td.title=t.toFixed(1)+'% · '+p+' años → '+fmt(divP)+'/mes';
+      td.onclick=()=>{selTasa=t;selAnos=p;redraw();};
+      tr.appendChild(td);
+    });
+  });
+  updateResult(credUF,ufVal,pieUF,propUF,pieM);
+}
+
+// ─── Update result card ───────────────────────────────────────
+function updateResult(credUF,ufVal,pieUF,propUF,pieM){
+  const piePct = propUF>0?(pieUF/propUF)*100:0;
+  const cuotaUF= cuota(credUF,selTasa,selAnos);
+  const cuotaP = cuotaUF*ufVal;
+  const totUF  = cuotaUF*selAnos*12;
+  const intUF  = totUF-credUF;
+  const intPct = totUF>0?(intUF/totUF)*100:0;
+
+  // Flow
+  document.getElementById('fPropUF').textContent = fmtUF(propUF);
+  document.getElementById('fPropP').textContent  = fmt(propUF*ufVal);
+  document.getElementById('fPieUF').textContent  = fmtUF(pieUF);
+  document.getElementById('fPieP').textContent   = fmt(pieM*1e6);
+  document.getElementById('fPiePct').textContent = piePct.toFixed(1)+'%';
+  document.getElementById('fBancoUF').textContent= fmtUF(credUF);
+  document.getElementById('fBancoP').textContent = fmt(credUF*ufVal);
+
+  // Interest bar
+  document.getElementById('intBarFill').style.width = (100-intPct).toFixed(1)+'%';
+  document.getElementById('fCapital').textContent   = fmtUF(credUF);
+  document.getElementById('fIntereses').textContent = fmtUF(intUF);
+
+  // Dividendo
+  document.getElementById('dividendo').textContent  = fmt(cuotaP);
+  document.getElementById('divUF').textContent      = cuotaUF.toLocaleString('es-CL',{minimumFractionDigits:3,maximumFractionDigits:3})+' UF/mes';
+  // Gastos operacionales (one-time)
+  const esDFL2      = document.getElementById('esDFL2').checked;
+  const timbresPct  = esDFL2 ? 0.006 : 0.008;
+  const goTimbres   = credUF * ufVal * timbresPct;
+  const goFijos     = 15 * ufVal; // tasación + títulos + notaría ~15 UF
+  const goTotal     = goTimbres + goFijos;
+  const pieDisp     = (parseFloat(document.getElementById('pieM').value)||0) * 1e6;
+  const pieEfect    = Math.max(0, pieDisp - goTotal);
+
+  document.getElementById('goTimbres').textContent   = fmt(goTimbres);
+  document.getElementById('goFijos').textContent     = fmt(goFijos);
+  document.getElementById('goTotal').textContent     = fmt(goTotal);
+  document.getElementById('goPieDisp').textContent   = fmt(pieDisp);
+  document.getElementById('goDeduccion').textContent = '− ' + fmt(goTotal);
+  document.getElementById('goPieEfectivo').textContent = fmt(pieEfect) + ' → ' + fmtUF(pieEfect/ufVal);
+
+  // Contribuciones
+  const contDFL2 = esDFL2;
+  document.getElementById('contDFL2msg').style.display = contDFL2 ? 'block' : 'none';
+  document.getElementById('contInputs').style.display  = contDFL2 ? 'none'  : 'block';
+  let contMes = 0;
+  if(!contDFL2){
+    const contTasa   = parseFloat(document.getElementById('contTasa').value)||0;
+    const contAvaluo = parseFloat(document.getElementById('contAvaluo').value)||70;
+    const avaluoVal  = propUF * ufVal * (contAvaluo/100);
+    contMes = avaluoVal * (contTasa/100) / 12;
+    document.getElementById('contMensual').textContent = fmt(contMes) + '/mes';
+  } else {
+    const contEl = document.getElementById('contMensual');
+    if(contEl) contEl.textContent = '$0 (DFL2)';
+  }
+
+  // Seguros
+  const segDesgPct  = parseFloat(document.getElementById('segDesg').value)||0;
+  const segIncPct   = parseFloat(document.getElementById('segIncendio').value)||0;
+  const segDesgMes  = credUF * (segDesgPct/100) * ufVal;
+  const segIncMes   = propUF * (segIncPct/100) * ufVal;
+  const totalReal   = cuotaP + segDesgMes + segIncMes + contMes;
+  const caeAprox    = selTasa * (totalReal / (cuotaP||1));
+
+  document.getElementById('caeDiv').textContent  = fmt(cuotaP);
+  document.getElementById('caeDesg').textContent = fmt(segDesgMes);
+  document.getElementById('caeInc').textContent  = fmt(segIncMes);
+  document.getElementById('caeCont').textContent = contDFL2 ? '$0 (DFL2)' : fmt(contMes);
+  document.getElementById('caeTotal').textContent= fmt(totalReal);
+  document.getElementById('caeVal').textContent  = caeAprox.toFixed(2).replace('.',',')+' %';
+
+  document.getElementById('s25').textContent = fmt(totalReal/0.25);
+  document.getElementById('s30').textContent = fmt(totalReal/0.30);
+
+  // Breakdown
+  document.getElementById('bProp').textContent= fmtUF(propUF)+' · '+fmt(propUF*ufVal);
+  document.getElementById('bPie').textContent = fmtUF(pieUF)+' · '+fmt(pieM*1e6);
+  document.getElementById('bCred').textContent= fmtUF(credUF)+' · '+fmt(credUF*ufVal);
+  document.getElementById('bInt').textContent = fmtUF(intUF)+' · '+fmt(intUF*ufVal);
+  document.getElementById('bTP').textContent  = selTasa.toFixed(1)+'% · '+selAnos+' años';
+  document.getElementById('bDiv').textContent = fmt(cuotaP);
+  document.getElementById('pieUF').textContent= fmtUF(pieUF)+'  ·  '+piePct.toFixed(1)+'%';
+  document.getElementById('ufDisplay').textContent= fmt(ufVal);
+
+  // Rate recommendation
+  const piePct2 = propUF>0?(pieUF/propUF)*100:0;
+  updateRateRecommendation(piePct2, credUF, selAnos);
+
+  // Refresh salary status with new dividend
+  const s1=parseFloat(document.getElementById('sueldo1').value)||0;
+  const s2=parseFloat(document.getElementById('sueldo2').value)||0;
+  // Use real total cost for salary check
+  const segD2 = (parseFloat(document.getElementById('segDesg').value)||0);
+  const segI2 = (parseFloat(document.getElementById('segIncendio').value)||0);
+  const propUF2 = parseFloat(document.getElementById('propUF').value)||0;
+  const credUF2 = Math.max(0, propUF2 - (parseFloat(document.getElementById('pieM').value)||0)*1e6/(parseFloat(document.getElementById('ufValue').value)||40442));
+  const ufVal2  = parseFloat(document.getElementById('ufValue').value)||40442;
+  const contT2 = document.getElementById('esDFL2').checked ? 0 :
+    propUF2*ufVal2*(parseFloat(document.getElementById('contAvaluo').value)||70)/100
+    *(parseFloat(document.getElementById('contTasa').value)||0)/100/12;
+  const realCost2 = cuotaP + credUF2*(segD2/100)*ufVal2 + propUF2*(segI2/100)*ufVal2 + contT2;
+  updateSalaryStatus(s1+s2, realCost2);
+
+  document.getElementById('selInfo').innerHTML =
+    'Seleccionado: <strong>'+selTasa.toFixed(1)+'% · '+selAnos+' años</strong> → dividendo <strong>'+fmt(cuotaP)+'/mes</strong>';
+
+  const r=selTasa/100/12, n=selAnos*12;
+  buildAmort(credUF,r,n,cuotaUF,ufVal,selAnos);
+  if(document.getElementById('amortPanel').classList.contains('show')) renderAmort(activeYear);
+}
+
+// ─── Abono puntuales state ────────────────────────────────────
+let abonosPuntuales = []; // [{mes, monto}]
+
+function addAbono(){
+  const n = parseInt(document.getElementById('newAbonoN').value);
+  const m = parseFloat(document.getElementById('newAbonoMonto').value);
+  if(!n||!m||n<1||m<=0) return;
+  abonosPuntuales.push({cadaX:n, monto:m});
+  abonosPuntuales.sort((a,b)=>a.cadaX-b.cadaX);
+  document.getElementById('newAbonoN').value='';
+  document.getElementById('newAbonoMonto').value='';
+  renderAbonoList();
+  redraw();
+}
+
+function removeAbono(idx){
+  abonosPuntuales.splice(idx,1);
+  renderAbonoList();
+  redraw();
+}
+
+function renderAbonoList(){
+  const el=document.getElementById('abonoList');
+  if(abonosPuntuales.length===0){el.innerHTML='';return;}
+  const freq = x => x===1?'todos los meses':x===3?'trimestral':x===6?'semestral':x===12?'anual':'cada '+x+' meses';
+  el.innerHTML = abonosPuntuales.map((a,i)=>{
+    const ejemplos=[a.cadaX,a.cadaX*2,a.cadaX*3].map(m=>'mes '+m).join(', ')+', ...';
+    return `<div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <div>
+          <span style="font-size:14px;font-weight:700;color:var(--terra)">${fmt(a.monto)}</span>
+          <span style="font-size:10px;font-weight:600;color:var(--taupe);margin-left:8px;text-transform:uppercase;letter-spacing:.06em">${freq(a.cadaX)}</span>
+        </div>
+        <button onclick="removeAbono(${i})" style="background:none;border:1px solid var(--border);border-radius:7px;padding:2px 8px;font-size:10px;color:var(--taupe);cursor:pointer;font-family:var(--sans)">✕</button>
+      </div>
+      <div style="font-size:10px;color:var(--taupe)">Aplica en: ${ejemplos}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Build amortization ───────────────────────────────────────
+function buildAmort(credUF,r,n,cuotaUF,ufVal,anos){
+  const abonoMesUF = 0; // abono fijo eliminado — solo por año
+
+  // Puntuales recurrentes: aplica si (i+1) es múltiplo de cadaX
+  function extraForMonth(i){
+    let extra = 0;
+    abonosPuntuales.forEach(a=>{ if((i+1) % a.cadaX === 0) extra += a.monto/ufVal; });
+    return extra;
+  }
+
+  // Base (sin abonos) para comparar
+  let baseTI=0; { let s=credUF; for(let i=0;i<n;i++){const im=s*r,cm=cuotaUF-im;s=Math.max(0,s-cm);baseTI+=im*ufVal;} }
+  const baseN=n;
+
+  amortData=[]; let saldo=credUF, tP=0,tI=0,tC=0, realN=0;
+  const MM=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const now=new Date(), m0=now.getMonth(), a0=now.getFullYear();
+
+  // Read seguros + contribuciones for per-month real cost
+  const segDesgPctA  = parseFloat(document.getElementById('segDesg').value)||0;
+  const segIncPctA   = parseFloat(document.getElementById('segIncendio').value)||0;
+  const esDFL2A      = document.getElementById('esDFL2').checked;
+  const contTasaA    = esDFL2A ? 0 : (parseFloat(document.getElementById('contTasa').value)||0);
+  const contAvA      = esDFL2A ? 0 : (parseFloat(document.getElementById('contAvaluo').value)||70);
+  const segIncFijo   = propUF * (segIncPctA/100) * ufVal; // fixed each month
+  const contMensA    = propUF * ufVal * (contAvA/100) * (contTasaA/100) / 12;
+
+  for(let i=0;i<n;i++){
+    if(saldo<=0.001) break;
+    const im=saldo*r;
+    const extraUF = abonoMesUF + extraForMonth(i);
+    const cm=cuotaUF-im+extraUF;
+    saldo=Math.max(0,saldo-cm);
+    const mi=(m0+i)%12, ai=a0+Math.floor((m0+i)/12);
+    const divBase=(cuotaUF+extraUF)*ufVal;
+    // Per-month insurance: desgravamen on current balance (before payment)
+    const segDesgMesA = (saldo + cm) * (segDesgPctA/100) * ufVal;
+    const segurosMes  = segDesgMesA + segIncFijo;
+    const totalReal   = divBase + segurosMes + contMensA;
+    tP+=totalReal; tI+=im*ufVal; tC+=cm*ufVal; realN++;
+    amortData.push({
+      mes:MM[mi]+' '+ai, anoNum:Math.floor(i/12)+1,
+      div:divBase, seguros:segurosMes, cont:contMensA,
+      totalReal, int:im*ufVal, cap:cm*ufVal,
+      pct:cuotaUF>0?(im/cuotaUF)*100:0,
+      saldo:Math.max(0,saldo), isFirst:i>0&&mi===m0,
+      hasAbono:extraUF>0,
+      abonoLabel: extraUF>0 ? fmt(extraUF*ufVal) : null
+    });
+  }
+
+  document.getElementById('sTot').textContent=fmt(tP); // now includes seguros+cont
+  document.getElementById('sInt').textContent=fmt(tI);
+  document.getElementById('sCap').textContent=fmt(tC);
+
+  const saved=baseN-realN, savedInt=baseTI-tI;
+  const savEl=document.getElementById('abonoSave');
+  const hayAbono = abonosPuntuales.length>0;
+  if(hayAbono && saved>0){
+    const sy=Math.floor(saved/12), sm=saved%12;
+    savEl.innerHTML='✦ Terminas <strong>'+(sy>0?sy+' años ':'')+(sm>0?sm+' meses ':'')+' antes</strong> · Ahorras <span class="saved">'+fmt(savedInt)+'</span> en intereses';
+  } else if(hayAbono){
+    savEl.textContent='El abono aún no reduce el plazo — intenta con un monto mayor';
+  } else {
+    savEl.textContent='Agrega un abono para ver cuánto ahorras';
+  }
+
+  const realAnos=Math.ceil(realN/12);
+  const yf=document.getElementById('yrFilter');
+  yf.innerHTML='<label>Año:</label>';
+  const mkBtn=(lbl,yr)=>{
+    const b=document.createElement('button');
+    b.className='yr-btn'+(activeYear===yr?' act':'');
+    b.textContent=lbl;
+    b.onclick=()=>{activeYear=yr;renderAmort(yr);document.querySelectorAll('.yr-btn').forEach(x=>x.classList.remove('act'));b.classList.add('act');};
+    yf.appendChild(b);
+  };
+  mkBtn('Todos',0);
+  for(let a=1;a<=realAnos;a++) mkBtn('Año '+a,a);
+}
+
+// ─── Render amort table ───────────────────────────────────────
+function renderAmort(yr){
+  const tbody=document.getElementById('amortBody');
+  tbody.innerHTML='';
+  (yr===0?amortData:amortData.filter(d=>d.anoNum===yr)).forEach(d=>{
+    const tr=document.createElement('tr');
+    if(d.isFirst&&yr===0) tr.classList.add('yr-s');
+    if(d.hasAbono) tr.classList.add('has-ab');
+    const p=Math.round(d.pct);
+    const clr=`hsl(${Math.round((1-d.pct/100)*120)},55%,42%)`;
+    const abTag=d.hasAbono?`<span class="ab-tag">+${d.abonoLabel||'abono'}</span>`:'';  
+    tr.innerHTML=`<td>${d.mes}${abTag}</td>
+      <td class="td">${fmt(d.div)}</td>
+      <td style="color:var(--taupe);font-size:11px">${fmt(d.seguros||0)}</td>
+      <td style="font-weight:700;color:var(--brown)">${fmt(d.totalReal||d.div)}</td>
+      <td class="ti">${fmt(d.int)}</td>
+      <td class="tc">${fmt(d.cap)}</td>
+      <td><div class="pb"><div class="pb-bar"><div class="pb-fill" style="width:${p}%;background:${clr}"></div></div><span style="font-size:9px;color:var(--taupe)">${p}%</span></div></td>
+      <td class="ts">${fmtUF(d.saldo)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─── Toggle amort ─────────────────────────────────────────────
+function toggleAmort(){
+  const panel=document.getElementById('amortPanel'),btn=document.getElementById('btnAmort');
+  if(panel.classList.contains('show')){panel.classList.remove('show');btn.classList.remove('open');}
+  else{panel.classList.add('show');btn.classList.add('open');activeYear=0;renderAmort(0);}
+}
+
+// ─── Redraw (property inputs change) ─────────────────────────
+let tasaCurrent=[3,6], anosCurrent=[10,30];
+
+function redraw(){
+  buildMatrix(tasaCurrent[0],tasaCurrent[1],anosCurrent[0],anosCurrent[1]);
+}
+
+// ─── Init ─────────────────────────────────────────────────────
+setupDual('tasaMinS','tasaMaxS','tasaFill','tasaMinLbl','tasaMaxLbl','tasaBadge','%',1,(mn,mx)=>{tasaCurrent=[mn,mx];redraw();});
+setupDual('anosMinS','anosMaxS','anosFill','anosMinLbl','anosMaxLbl','anosBadge',' a',0,(mn,mx)=>{anosCurrent=[mn,mx];redraw();});
+
+['propUF','ufValue','pieM'].forEach(id=>document.getElementById(id).addEventListener('input',redraw));
+
+redraw();
+</script>
+</body>
+</html>
